@@ -14,6 +14,11 @@ const checks = [
     expectStatus: 200
   },
   {
+    name: "config",
+    url: `${root}/api/config`,
+    expectStatus: 200
+  },
+  {
     name: "invalid url",
     url: `${root}/api/profile?url=${encodeURIComponent("https://example.com/not-linkedin")}`,
     expectStatus: 400

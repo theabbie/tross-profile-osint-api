@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tross Profile OSINT API</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel">
+        <div class="masthead">
+          <p class="eyebrow">Tross challenge</p>
+          <h1>LinkedIn Profile OSINT API</h1>
+          <p class="lede">
+            Enter a LinkedIn profile URL. The API verifies the request, queries Exa People Search, and returns grounded structured JSON.
+          </p>
+        </div>
+
+        <form id="profile-form" class="form">
+          <label for="profile-url">LinkedIn profile URL</label>
+          <div class="input-row">
+            <input
+              id="profile-url"
+              name="url"
+              type="url"
+              placeholder="https://www.linkedin.com/in/example"
+              autocomplete="url"
+              required
+            />
+            <button id="submit-button" type="submit">Fetch JSON</button>
+          </div>
+          <div id="captcha-anchor"></div>
+          <p id="status" class="status" role="status" aria-live="polite"></p>
+        </form>
+
+        <pre id="output" class="output">{}</pre>
+      </section>
+    </main>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

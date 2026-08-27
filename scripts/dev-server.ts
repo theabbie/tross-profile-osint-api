@@ -1,6 +1,10 @@
+import { createReadStream } from "node:fs";
+import { stat } from "node:fs/promises";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { extname, join } from "node:path";
 import healthHandler from "../api/health.js";
 import profileHandler from "../api/profile.js";
+import configHandler from "../api/config.js";
 
 const port = Number(process.env.PORT ?? process.argv[2] ?? 3000);
 
@@ -30,8 +34,17 @@ const server = createServer(async (incoming, outgoing) => {
     return;
   }
 
+  if (parsed.pathname === "/api/config") {
+    configHandler(request as never, response as never);
+    return;
+  }
+
   if (parsed.pathname === "/api/profile") {
     await profileHandler(request as never, response as never);
+    return;
+  }
+
+  if (await tryServeStatic(parsed.pathname, response)) {
     return;
   }
 
@@ -61,6 +74,41 @@ function decorateResponse(response: LocalResponse): LocalResponse {
   };
 
   return response;
+}
+
+async function tryServeStatic(pathname: string, response: ServerResponse): Promise<boolean> {
+  const safePath = pathname === "/" ? "/index.html" : pathname;
+  if (safePath.includes("..")) {
+    return false;
+  }
+
+  const filePath = join(process.cwd(), "public", safePath);
+  try {
+    const details = await stat(filePath);
+    if (!details.isFile()) {
+      return false;
+    }
+  } catch {
+    return false;
+  }
+
+  response.statusCode = 200;
+  response.setHeader("content-type", contentType(filePath));
+  createReadStream(filePath).pipe(response);
+  return true;
+}
+
+function contentType(filePath: string): string {
+  switch (extname(filePath)) {
+    case ".html":
+      return "text/html; charset=utf-8";
+    case ".css":
+      return "text/css; charset=utf-8";
+    case ".js":
+      return "text/javascript; charset=utf-8";
+    default:
+      return "application/octet-stream";
+  }
 }
 
 async function readJsonBody(request: IncomingMessage): Promise<unknown> {

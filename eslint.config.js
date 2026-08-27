@@ -29,5 +29,16 @@ export default tseslint.config(
         process: "readonly"
       }
     }
+  },
+  {
+    files: ["public/**/*.js"],
+    languageOptions: {
+      globals: {
+        document: "readonly",
+        fetch: "readonly",
+        grecaptcha: "readonly",
+        window: "readonly"
+      }
+    }
   }
 );

@@ -7,7 +7,7 @@ Hosted API for the Tross engineering challenge. It accepts a LinkedIn profile UR
 Production URL:
 
 ```text
-https://tross-profile-osint-api.vercel.app
+https://tross-profile-osint.vercel.app
 ```
 
 ## Approach
@@ -17,6 +17,8 @@ The challenge asks for a LinkedIn profile API. This implementation avoids creden
 The response is intentionally partial when data is unavailable. Missing fields are reported in `warnings` rather than fabricated.
 
 The API does not return personal emails, phone numbers, private identifiers, or unrelated sensitive enrichment fields.
+
+The browser demo uses invisible reCAPTCHA v2. The API verifies the token server-side when `RECAPTCHA_SECRET_KEY` is configured.
 
 ## API
 
@@ -29,23 +31,23 @@ GET /api/health
 Example:
 
 ```bash
-curl https://tross-profile-osint-api.vercel.app/api/health
+curl https://tross-profile-osint.vercel.app/api/health
 ```
 
 ### Fetch Profile
 
 ```http
-GET /api/profile?url=<linkedin-profile-url>
+GET /api/profile?url=<linkedin-profile-url>&recaptchaToken=<token>
 POST /api/profile
 Content-Type: application/json
 
-{ "url": "https://www.linkedin.com/in/example" }
+{ "url": "https://www.linkedin.com/in/example", "recaptchaToken": "<token>" }
 ```
 
 Example:
 
 ```bash
-curl "https://tross-profile-osint-api.vercel.app/api/profile?url=https%3A%2F%2Fwww.linkedin.com%2Fin%2Fexample"
+curl "https://tross-profile-osint.vercel.app/api/profile?url=https%3A%2F%2Fwww.linkedin.com%2Fin%2Fexample&recaptchaToken=<token>"
 ```
 
 Example response:
@@ -102,10 +104,11 @@ Example response:
 
 - `400 invalid_request`: missing or malformed request body/query.
 - `400 invalid_linkedin_url`: URL is not a LinkedIn personal profile URL.
+- `403 captcha_required`, `captcha_failed`, or `captcha_hostname_mismatch`: reCAPTCHA verification did not pass.
 - `422 profile_not_found`: Exa returned no usable match for the profile.
 - `429 rate_limited`: too many requests from the same IP.
 - `502 provider_not_configured`: `EXA_API_KEY` is not configured.
-- `502 provider_error` or `provider_timeout`: Exa request failed.
+- `502 provider_error`, `provider_timeout`, or `captcha_provider_error`: upstream verification/search failed.
 
 ## Local Setup
 
@@ -115,6 +118,7 @@ Requirements:
 - npm
 - Vercel CLI
 - Exa API key
+- Invisible reCAPTCHA v2 site and secret keys
 
 Install dependencies:
 
@@ -132,6 +136,9 @@ Set:
 
 ```text
 EXA_API_KEY=<your key>
+RECAPTCHA_SITE_KEY=<your invisible v2 site key>
+RECAPTCHA_SECRET_KEY=<your invisible v2 secret key>
+RECAPTCHA_ALLOWED_HOSTNAME=tross-profile-osint.vercel.app
 ```
 
 Run locally:
@@ -156,13 +163,16 @@ Create the Vercel project and configure the secret:
 ```bash
 vercel link
 vercel env add EXA_API_KEY production
+vercel env add RECAPTCHA_SITE_KEY production
+vercel env add RECAPTCHA_SECRET_KEY production
+vercel env add RECAPTCHA_ALLOWED_HOSTNAME production
 vercel deploy --prod
 ```
 
 Run production smoke checks:
 
 ```bash
-npm run smoke -- https://tross-profile-osint-api.vercel.app
+npm run smoke -- https://tross-profile-osint.vercel.app
 ```
 
 ## Known Limitations

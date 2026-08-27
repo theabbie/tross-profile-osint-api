@@ -1,0 +1,142 @@
+:root {
+  color-scheme: light;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f7f8fa;
+  color: #17202a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.shell {
+  width: min(1060px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 56px 0;
+}
+
+.panel {
+  display: grid;
+  gap: 28px;
+}
+
+.masthead {
+  max-width: 720px;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: #52616f;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  color: #0d141c;
+  font-size: clamp(2rem, 6vw, 4rem);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.lede {
+  margin: 18px 0 0;
+  color: #465564;
+  font-size: 1.04rem;
+  line-height: 1.6;
+}
+
+.form {
+  display: grid;
+  gap: 10px;
+  max-width: 900px;
+}
+
+label {
+  color: #293642;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #cad2dc;
+  border-radius: 6px;
+  padding: 0 14px;
+  color: #111923;
+  background: #fff;
+  font: inherit;
+}
+
+input:focus {
+  outline: 3px solid #a9c7ff;
+  border-color: #4b82df;
+}
+
+button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0 18px;
+  background: #1f6feb;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.status {
+  min-height: 24px;
+  margin: 0;
+  color: #52616f;
+  font-size: 0.94rem;
+}
+
+.status.error {
+  color: #ad2434;
+}
+
+.output {
+  min-height: 420px;
+  overflow: auto;
+  border: 1px solid #d8dee7;
+  border-radius: 8px;
+  margin: 0;
+  padding: 18px;
+  background: #10151d;
+  color: #d8f3dc;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 720px) {
+  .shell {
+    width: min(100vw - 24px, 1060px);
+    padding: 32px 0;
+  }
+
+  .input-row {
+    grid-template-columns: 1fr;
+  }
+}
