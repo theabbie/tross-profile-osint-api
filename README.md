@@ -4,11 +4,17 @@ Hosted API for the Tross engineering challenge. It accepts a LinkedIn profile UR
 
 ## Hosted API
 
-Production URL:
+[https://tross-profile-osint.vercel.app](https://tross-profile-osint.vercel.app)
 
-```text
-https://tross-profile-osint.vercel.app
-```
+## Demo
+
+Initial form:
+
+![Tross Profile OSINT API form](docs/assets/tross-profile-osint-home.png)
+
+Structured JSON result:
+
+![Tross Profile OSINT API result](docs/assets/tross-profile-osint-result.png)
 
 ## Approach
 
@@ -108,7 +114,7 @@ Example response:
 
 - `400 invalid_request`: missing or malformed request body/query.
 - `400 invalid_linkedin_url`: URL is not a LinkedIn personal profile URL.
-- `403 captcha_required`, `captcha_failed`, or `captcha_hostname_mismatch`: reCAPTCHA verification did not pass.
+- `403 captcha_required` or `captcha_failed`: reCAPTCHA verification did not pass.
 - `422 profile_not_found`: Exa returned no results at all.
 - `429 rate_limited`: too many requests from the same IP.
 - `502 provider_not_configured`: `EXA_API_KEY` is not configured.
