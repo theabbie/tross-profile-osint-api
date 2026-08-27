@@ -14,7 +14,7 @@ https://tross-profile-osint.vercel.app
 
 The challenge asks for a LinkedIn profile API. This implementation avoids credential-backed LinkedIn scraping and instead uses Exa's People Search vertical, which indexes professional profiles and can return structured person entities. The API normalizes the requested LinkedIn URL, queries Exa for that exact profile identity, ranks candidate results, and maps grounded fields into a stable response schema.
 
-The response is intentionally partial when data is unavailable. Missing fields are reported in `warnings` rather than fabricated.
+The response is intentionally partial when data is unavailable. If Exa does not return an exact LinkedIn URL match, the API returns the top available Exa person result and includes a warning that the result may not be the requested profile.
 
 The API does not return personal emails, phone numbers, private identifiers, or unrelated sensitive enrichment fields.
 
@@ -109,7 +109,7 @@ Example response:
 - `400 invalid_request`: missing or malformed request body/query.
 - `400 invalid_linkedin_url`: URL is not a LinkedIn personal profile URL.
 - `403 captcha_required`, `captcha_failed`, or `captcha_hostname_mismatch`: reCAPTCHA verification did not pass.
-- `422 profile_not_found`: Exa returned no usable match for the profile.
+- `422 profile_not_found`: Exa returned no results at all.
 - `429 rate_limited`: too many requests from the same IP.
 - `502 provider_not_configured`: `EXA_API_KEY` is not configured.
 - `502 provider_error`, `provider_timeout`, or `captcha_provider_error`: upstream verification/search failed.

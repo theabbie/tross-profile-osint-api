@@ -136,21 +136,34 @@ describe("mapExaToProfileResponse", () => {
     expect(response.warnings).toContain("Missing location; Exa did not return a grounded value.");
   });
 
-  it("throws 422 when no result matches the requested profile", () => {
-    expect(() =>
-      mapExaToProfileResponse({
-        inputUrl: "linkedin.com/in/jane-doe",
-        canonicalUrl: "https://www.linkedin.com/in/jane-doe",
-        publicIdentifier: "jane-doe",
-        exa: {
-          results: [
-            {
-              title: "Someone Else - Engineer",
-              url: "https://www.linkedin.com/in/someone-else"
-            }
-          ]
-        }
-      })
-    ).toThrow("No usable Exa People result matched");
+  it("falls back to the top Exa person result when no exact match exists", () => {
+    const response = mapExaToProfileResponse({
+      inputUrl: "linkedin.com/in/jane-doe",
+      canonicalUrl: "https://www.linkedin.com/in/jane-doe",
+      publicIdentifier: "jane-doe",
+      exa: {
+        results: [
+          {
+            title: "Someone Else - Engineer",
+            url: "https://www.linkedin.com/in/someone-else",
+            entities: [
+              {
+                type: "person",
+                properties: {
+                  name: "Someone Else",
+                  headline: "Engineer"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      fetchedAt: "2026-08-27T00:00:00.000Z"
+    });
+
+    expect(response.profile.name).toBe("Someone Else");
+    expect(response.warnings).toContain(
+      "No exact Exa People match was found for https://www.linkedin.com/in/jane-doe; returned the top available person result instead."
+    );
   });
 });

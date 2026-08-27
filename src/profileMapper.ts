@@ -44,6 +44,11 @@ export function mapExaToProfileResponse(args: {
   const sources: Source[] = [];
   const profile: Profile = { ...EMPTY_PROFILE, images: {} };
   const source = sourceFromResult(match.result);
+  if (match.reason === "fallback_top_person_result") {
+    warnings.push(
+      `No exact Exa People match was found for ${args.canonicalUrl}; returned the top available person result instead.`
+    );
+  }
 
   const name = firstString(person, ["name", "fullName", "full_name"]);
   if (name) {
@@ -190,7 +195,13 @@ export function chooseBestResult(
     .filter((match) => match.score >= 50)
     .sort((a, b) => b.score - a.score);
 
-  return matches[0] ?? null;
+  return matches[0] ?? firstPersonResult(results);
+}
+
+function firstPersonResult(results: ExaResult[]): Match | null {
+  const result =
+    results.find((candidate) => candidate.entities?.some((entity) => entity.type === "person")) ?? results[0];
+  return result ? { result, score: 1, reason: "fallback_top_person_result" } : null;
 }
 
 function getPersonProperties(result: ExaResult): PersonProperties | null {
