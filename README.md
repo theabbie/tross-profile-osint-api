@@ -18,7 +18,7 @@ The response is intentionally partial when data is unavailable. Missing fields a
 
 The API does not return personal emails, phone numbers, private identifiers, or unrelated sensitive enrichment fields.
 
-The browser demo uses invisible reCAPTCHA v2. The API verifies the token server-side when `RECAPTCHA_SECRET_KEY` is configured.
+The browser demo uses invisible reCAPTCHA v2. The API verifies the token server-side when `RECAPTCHA_SECRET_KEY` is configured. Successful profile results are cached in Firestore when `FIREBASE_SERVICE_ACCOUNT` is configured.
 
 ## API
 
@@ -96,6 +96,10 @@ Example response:
   ],
   "warnings": [],
   "provider": "exa",
+  "cache": {
+    "hit": false,
+    "namespace": "tross-profile-osint/profiles"
+  },
   "fetchedAt": "2026-08-27T00:00:00.000Z"
 }
 ```
@@ -138,7 +142,7 @@ Set:
 EXA_API_KEY=<your key>
 RECAPTCHA_SITE_KEY=<your invisible v2 site key>
 RECAPTCHA_SECRET_KEY=<your invisible v2 secret key>
-RECAPTCHA_ALLOWED_HOSTNAME=tross-profile-osint.vercel.app
+FIREBASE_SERVICE_ACCOUNT=<service account json or base64 json>
 ```
 
 Run locally:
@@ -165,7 +169,7 @@ vercel link
 vercel env add EXA_API_KEY production
 vercel env add RECAPTCHA_SITE_KEY production
 vercel env add RECAPTCHA_SECRET_KEY production
-vercel env add RECAPTCHA_ALLOWED_HOSTNAME production
+vercel env add FIREBASE_SERVICE_ACCOUNT production
 vercel deploy --prod
 ```
 
@@ -178,6 +182,7 @@ npm run smoke -- https://tross-profile-osint.vercel.app
 ## Known Limitations
 
 - OSINT coverage varies by profile and Exa's current index.
+- Firestore cache returns the first successful structured response for a normalized LinkedIn public identifier until overwritten by a fresh deploy/manual cache change.
 - LinkedIn fields like skills, certifications, languages, and education may be absent.
 - The API does not use LinkedIn credentials or private LinkedIn APIs.
 - Freshness depends on Exa's index and cache behavior.

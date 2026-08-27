@@ -3,11 +3,9 @@ import { verifyRecaptchaToken } from "../src/recaptcha.js";
 
 describe("verifyRecaptchaToken", () => {
   const originalSecret = process.env.RECAPTCHA_SECRET_KEY;
-  const originalHostname = process.env.RECAPTCHA_ALLOWED_HOSTNAME;
 
   afterEach(() => {
     process.env.RECAPTCHA_SECRET_KEY = originalSecret;
-    process.env.RECAPTCHA_ALLOWED_HOSTNAME = originalHostname;
     vi.unstubAllGlobals();
   });
 
@@ -23,7 +21,6 @@ describe("verifyRecaptchaToken", () => {
 
   it("accepts successful verification", async () => {
     process.env.RECAPTCHA_SECRET_KEY = "secret";
-    process.env.RECAPTCHA_ALLOWED_HOSTNAME = "tross-profile-osint.vercel.app";
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => ({
@@ -50,5 +47,20 @@ describe("verifyRecaptchaToken", () => {
     );
 
     await expect(verifyRecaptchaToken("bad-token")).rejects.toThrow("reCAPTCHA verification failed.");
+  });
+
+  it("does not enforce a local hostname allowlist after Google accepts the token", async () => {
+    process.env.RECAPTCHA_SECRET_KEY = "secret";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        json: async () => ({
+          success: true,
+          hostname: "unexpected-host.example"
+        })
+      }))
+    );
+
+    await expect(verifyRecaptchaToken("token")).resolves.toBeUndefined();
   });
 });

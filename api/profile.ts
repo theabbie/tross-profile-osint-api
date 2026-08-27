@@ -6,6 +6,7 @@ import { enforceRateLimit } from "../src/rateLimit.js";
 import { fetchProfile } from "../src/profileService.js";
 import { verifyRecaptchaToken } from "../src/recaptcha.js";
 import { parseLinkedInProfileUrl } from "../src/linkedin.js";
+import { createFirestoreCache } from "../src/firestoreCache.js";
 
 const bodySchema = z.object({
   url: z.string().min(1),
@@ -20,7 +21,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
     const { url, recaptchaToken } = extractRequest(request);
     parseLinkedInProfileUrl(url);
     await verifyRecaptchaToken(recaptchaToken, requestIp(request));
-    const payload = await fetchProfile(url, new ExaApiClient());
+    const payload = await fetchProfile(url, new ExaApiClient(), createFirestoreCache());
     sendJson(response, 200, payload);
   } catch (error) {
     sendError(response, normalizeError(error));

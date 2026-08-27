@@ -54,8 +54,4 @@ export async function verifyRecaptchaToken(token: string | undefined, remoteIp?:
     });
   }
 
-  const allowedHostname = process.env.RECAPTCHA_ALLOWED_HOSTNAME?.trim();
-  if (allowedHostname && payload.hostname !== allowedHostname) {
-    throw new HttpError(403, "captcha_hostname_mismatch", "reCAPTCHA token was issued for an unexpected hostname.");
-  }
 }

@@ -146,6 +146,10 @@ export function mapExaToProfileResponse(args: {
     sources: dedupeSources(sources),
     warnings,
     provider: "exa",
+    cache: {
+      hit: false,
+      namespace: "tross-profile-osint/profiles"
+    },
     fetchedAt: args.fetchedAt ?? new Date().toISOString()
   };
 }

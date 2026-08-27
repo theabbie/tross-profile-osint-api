@@ -102,6 +102,10 @@ describe("mapExaToProfileResponse", () => {
     expect(response.profile.education[0]?.institution).toBe("Stanford University");
     expect(response.profile.skills).toContain("Engineering Leadership");
     expect(response.profile.images.profile).toBe("https://example.com/jane.jpg");
+    expect(response.cache).toEqual({
+      hit: false,
+      namespace: "tross-profile-osint/profiles"
+    });
     expect(response.sources.some((source) => source.field === "profile.name")).toBe(true);
     expect(response.warnings).toEqual([]);
   });

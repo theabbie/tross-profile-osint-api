@@ -49,6 +49,10 @@ export type ProfileResponse = {
   sources: Source[];
   warnings: string[];
   provider: "exa";
+  cache: {
+    hit: boolean;
+    namespace: string;
+  };
   fetchedAt: string;
 };
 
