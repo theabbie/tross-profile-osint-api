@@ -11,6 +11,7 @@ type FirebaseServiceAccount = {
 type FirestoreDocument = {
   name?: string;
   fields?: {
+    cacheVersion?: { stringValue?: string };
     response?: { stringValue?: string };
   };
 };
@@ -21,6 +22,7 @@ type TokenCache = {
 };
 
 const COLLECTION = "tross_profile_osint_cache";
+const CACHE_VERSION = "exa-contents-v1";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const FIRESTORE_SCOPE = "https://www.googleapis.com/auth/datastore";
 const tokenCacheByClient = new Map<string, TokenCache>();
@@ -44,6 +46,10 @@ export class FirestoreProfileCache implements ProfileCache {
     }
 
     const document = (await response.json()) as FirestoreDocument;
+    if (document.fields?.cacheVersion?.stringValue !== CACHE_VERSION) {
+      return null;
+    }
+
     const raw = document.fields?.response?.stringValue;
     return raw ? (JSON.parse(raw) as ProfileResponse) : null;
   }
@@ -58,6 +64,7 @@ export class FirestoreProfileCache implements ProfileCache {
       body: JSON.stringify({
         fields: {
           namespace: { stringValue: PROFILE_CACHE_NAMESPACE },
+          cacheVersion: { stringValue: CACHE_VERSION },
           publicIdentifier: { stringValue: publicIdentifier.toLowerCase() },
           canonicalUrl: { stringValue: profileResponse.canonicalUrl },
           response: { stringValue: JSON.stringify(profileResponse) },

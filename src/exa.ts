@@ -30,14 +30,30 @@ export type ExaSearchResponse = {
   };
 };
 
+export type ExaContentsResult = {
+  title?: string;
+  url?: string;
+  text?: string;
+  highlights?: string[];
+  image?: string;
+  error?: unknown;
+};
+
+export type ExaContentsResponse = {
+  requestId?: string;
+  results?: ExaContentsResult[];
+};
+
 export type ExaClient = {
   searchPeople(query: string): Promise<ExaSearchResponse>;
+  fetchContents(url: string): Promise<ExaContentsResponse>;
 };
 
 export class ExaApiClient implements ExaClient {
   constructor(
     private readonly apiKey = process.env.EXA_API_KEY,
-    private readonly endpoint = "https://api.exa.ai/search"
+    private readonly searchEndpoint = "https://api.exa.ai/search",
+    private readonly contentsEndpoint = "https://api.exa.ai/contents"
   ) {}
 
   async searchPeople(query: string): Promise<ExaSearchResponse> {
@@ -49,7 +65,7 @@ export class ExaApiClient implements ExaClient {
     const timeout = setTimeout(() => controller.abort(), 12_000);
 
     try {
-      const response = await fetch(this.endpoint, {
+      const response = await fetch(this.searchEndpoint, {
         method: "POST",
         signal: controller.signal,
         headers: {
@@ -84,6 +100,57 @@ export class ExaApiClient implements ExaClient {
         throw new HttpError(502, "provider_timeout", "Exa search timed out.");
       }
       throw new HttpError(502, "provider_error", "Exa search failed.");
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  async fetchContents(url: string): Promise<ExaContentsResponse> {
+    if (!this.apiKey) {
+      throw new HttpError(502, "provider_not_configured", "EXA_API_KEY is not configured.");
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12_000);
+
+    try {
+      const response = await fetch(this.contentsEndpoint, {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          authorization: `Bearer ${this.apiKey}`,
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          urls: [url],
+          text: {
+            maxCharacters: 12_000
+          },
+          highlights: {
+            query: "name headline location about experience education skills certifications languages profile image",
+            numSentences: 5
+          },
+          maxAgeHours: 24
+        })
+      });
+
+      const payload = await parseJson(response);
+      if (!response.ok) {
+        throw new HttpError(502, "provider_error", "Exa contents fetch failed.", {
+          status: response.status,
+          body: payload
+        });
+      }
+
+      return payload as ExaContentsResponse;
+    } catch (error) {
+      if (error instanceof HttpError) {
+        throw error;
+      }
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new HttpError(502, "provider_timeout", "Exa contents fetch timed out.");
+      }
+      throw new HttpError(502, "provider_error", "Exa contents fetch failed.");
     } finally {
       clearTimeout(timeout);
     }

@@ -18,7 +18,7 @@ The response is intentionally partial when data is unavailable. If Exa does not 
 
 The API does not return personal emails, phone numbers, private identifiers, or unrelated sensitive enrichment fields.
 
-The browser demo uses invisible reCAPTCHA v2. The API verifies the token server-side when `RECAPTCHA_SECRET_KEY` is configured. Successful profile results are cached in Firestore when `FIREBASE_SERVICE_ACCOUNT` is configured.
+The browser demo uses invisible reCAPTCHA v2. The API verifies the token server-side when `RECAPTCHA_SECRET_KEY` is configured. Successful profile results are cached in Firestore when `FIREBASE_SERVICE_ACCOUNT` is configured. The API combines Exa People Search with Exa web fetch/Contents API for exact LinkedIn profile URLs.
 
 ## API
 

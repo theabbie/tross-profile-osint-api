@@ -27,6 +27,9 @@ describe("fetchProfile", () => {
             }
           ]
         };
+      },
+      async fetchContents() {
+        return { results: [] };
       }
     };
 
@@ -41,6 +44,9 @@ describe("fetchProfile", () => {
     const client: ExaClient = {
       async searchPeople() {
         throw new HttpError(502, "provider_error", "Exa search failed.");
+      },
+      async fetchContents() {
+        return { results: [] };
       }
     };
 
@@ -50,6 +56,9 @@ describe("fetchProfile", () => {
   it("returns cached responses without querying Exa", async () => {
     const client: ExaClient = {
       async searchPeople() {
+        throw new Error("Exa should not be called on cache hit.");
+      },
+      async fetchContents() {
         throw new Error("Exa should not be called on cache hit.");
       }
     };
@@ -111,6 +120,9 @@ describe("fetchProfile", () => {
             }
           ]
         };
+      },
+      async fetchContents() {
+        return { results: [] };
       }
     };
     const cache: ProfileCache = {
@@ -127,5 +139,76 @@ describe("fetchProfile", () => {
 
     expect(setCalled).toBe(true);
     expect(response.cache.hit).toBe(false);
+  });
+
+  it("enriches and caches exact LinkedIn markdown fetched through Exa contents", async () => {
+    let cachedName = "";
+    const client: ExaClient = {
+      async searchPeople() {
+        return {
+          results: [
+            {
+              title: "Wrong Person - Engineer",
+              url: "https://www.linkedin.com/in/wrong-person",
+              entities: [
+                {
+                  type: "person",
+                  properties: {
+                    name: "Wrong Person",
+                    headline: "Engineer"
+                  }
+                }
+              ]
+            }
+          ]
+        };
+      },
+      async fetchContents() {
+        return {
+          results: [
+            {
+              title: "Abhishek Choudhary",
+              url: "https://www.linkedin.com/in/theabbie",
+              text: [
+                "# Abhishek Choudhary",
+                "MTS @ Athenahealth",
+                "Navi Mumbai, Maharashtra, India (IN)",
+                "## About",
+                "Hi, I am Abhishek",
+                "## Experience",
+                "### Member of Technical Staff - [athenahealth](https://www.linkedin.com/company/athenahealth) (Current)",
+                "Jul 2025 - Present in Pune, Maharashtra, India",
+                "## Education",
+                "### Bachelor of Engineering - BE, Computer Engineering at [Fr. CRIT](https://www.linkedin.com/school/example)",
+                "2019 - 2023 in India",
+                "## Licenses & Certifications",
+                "### Meta Hackercup 2023 Round 2 by [Meta](https://linkedin.com/company/meta)",
+                "account aggregator • api development • spring boot • typescript",
+                "English - Full professional proficiency"
+              ].join("\n")
+            }
+          ]
+        };
+      }
+    };
+    const cache: ProfileCache = {
+      async get() {
+        return null;
+      },
+      async set(_publicIdentifier, response) {
+        cachedName = response.profile.name ?? "";
+      }
+    };
+
+    const response = await fetchProfile("https://www.linkedin.com/in/theabbie", client, cache);
+
+    expect(response.profile.name).toBe("Abhishek Choudhary");
+    expect(response.profile.headline).toBe("MTS @ Athenahealth");
+    expect(response.profile.location).toBe("Navi Mumbai, Maharashtra, India");
+    expect(response.profile.experience[0]?.company).toBe("athenahealth");
+    expect(response.profile.skills).toContain("spring boot");
+    expect(response.profile.languages).toContain("English - Full professional proficiency");
+    expect(response.warnings.some((warning) => warning.startsWith("No exact Exa People match was found"))).toBe(false);
+    expect(cachedName).toBe("Abhishek Choudhary");
   });
 });

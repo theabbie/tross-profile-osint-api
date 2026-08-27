@@ -3,6 +3,7 @@ import { parseLinkedInProfileUrl } from "./linkedin.js";
 import { mapExaToProfileResponse } from "./profileMapper.js";
 import type { ProfileResponse } from "./types.js";
 import { markCacheHit, markCacheMiss, type ProfileCache } from "./cache.js";
+import { enrichWithFetchedLinkedInContent } from "./fetchEnrichment.js";
 
 export async function fetchProfile(
   inputUrl: string,
@@ -21,18 +22,40 @@ export async function fetchProfile(
   }
 
   const query = buildPeopleQuery(parsed.publicIdentifier, parsed.canonicalUrl);
-  const exa = await exaClient.searchPeople(query);
+  const [exa, contents] = await Promise.all([
+    exaClient.searchPeople(query),
+    fetchLinkedInContents(exaClient, parsed.canonicalUrl, cacheWarnings)
+  ]);
 
-  const response = markCacheMiss(mapExaToProfileResponse({
-    inputUrl,
-    canonicalUrl: parsed.canonicalUrl,
-    publicIdentifier: parsed.publicIdentifier,
-    exa
-  }));
+  const response = markCacheMiss(
+    enrichWithFetchedLinkedInContent(
+      mapExaToProfileResponse({
+        inputUrl,
+        canonicalUrl: parsed.canonicalUrl,
+        publicIdentifier: parsed.publicIdentifier,
+        exa
+      }),
+      contents?.results?.[0],
+      parsed.canonicalUrl
+    )
+  );
 
   await writeCache(cache, parsed.publicIdentifier, response);
   response.warnings.push(...cacheWarnings);
   return response;
+}
+
+async function fetchLinkedInContents(
+  exaClient: ExaClient,
+  canonicalUrl: string,
+  warnings: string[]
+) {
+  try {
+    return await exaClient.fetchContents(canonicalUrl);
+  } catch {
+    warnings.push("Exa web fetch failed; response uses People Search results only.");
+    return null;
+  }
 }
 
 async function readCache(
