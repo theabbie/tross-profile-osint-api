@@ -8,15 +8,15 @@ type RecaptchaVerifyResponse = {
 };
 
 export function recaptchaConfigured(): boolean {
-  return Boolean(process.env.RECAPTCHA_SECRET_KEY);
+  return Boolean(process.env.RECAPTCHA_SECRET_KEY?.trim());
 }
 
 export function publicRecaptchaSiteKey(): string | null {
-  return process.env.RECAPTCHA_SITE_KEY ?? null;
+  return process.env.RECAPTCHA_SITE_KEY?.trim() ?? null;
 }
 
 export async function verifyRecaptchaToken(token: string | undefined, remoteIp?: string): Promise<void> {
-  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  const secret = process.env.RECAPTCHA_SECRET_KEY?.trim();
   if (!secret) {
     return;
   }
@@ -54,7 +54,7 @@ export async function verifyRecaptchaToken(token: string | undefined, remoteIp?:
     });
   }
 
-  const allowedHostname = process.env.RECAPTCHA_ALLOWED_HOSTNAME;
+  const allowedHostname = process.env.RECAPTCHA_ALLOWED_HOSTNAME?.trim();
   if (allowedHostname && payload.hostname !== allowedHostname) {
     throw new HttpError(403, "captcha_hostname_mismatch", "reCAPTCHA token was issued for an unexpected hostname.");
   }
