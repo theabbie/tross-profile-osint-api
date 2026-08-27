@@ -5,6 +5,7 @@ import { allowMethods, HttpError, requestIp, sendError, sendJson } from "../src/
 import { enforceRateLimit } from "../src/rateLimit.js";
 import { fetchProfile } from "../src/profileService.js";
 import { verifyRecaptchaToken } from "../src/recaptcha.js";
+import { parseLinkedInProfileUrl } from "../src/linkedin.js";
 
 const bodySchema = z.object({
   url: z.string().min(1),
@@ -17,6 +18,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
     enforceRateLimit(requestIp(request));
 
     const { url, recaptchaToken } = extractRequest(request);
+    parseLinkedInProfileUrl(url);
     await verifyRecaptchaToken(recaptchaToken, requestIp(request));
     const payload = await fetchProfile(url, new ExaApiClient());
     sendJson(response, 200, payload);
